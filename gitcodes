@@ -4,9 +4,12 @@
     ssh-keygen -t ed25519 -C "syedsardar74@gmail"
     cat ~/git.pub
    ssh -T git@github.com
-    ssh-add ~/git
+  ssh-add ~/git
   eval "$(ssh-agent -s)"
+
 local/staging/local repo (git)/remote repo(git)
+
+
 git init
 git add file name
 git checkout branch
