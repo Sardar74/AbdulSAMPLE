@@ -1,8 +1,16 @@
+**Link SSH**
+ cat ~/.ssh/id_ed25519.pub
+    ls ~/.ssh
+    ssh-keygen -t ed25519 -C "syedsardar74@gmail"
+    cat ~/git.pub
+   ssh -T git@github.com
+    ssh-add ~/git
+  eval "$(ssh-agent -s)"
 local/staging/local repo (git)/remote repo(git)
 git init
 git add file name
 git checkout branch
 git commit 'message'
 git push (local to cloud)
-git branch -M main
-git remote add origin git@github.com:Sardar74/AbdulSAMPLE.git
+git pull origin branch
+
