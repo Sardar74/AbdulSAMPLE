@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      name : install java 17  
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin' 
+      name: checkout java status  
+      uses: actions/checkout@v3 
+      name: install jenkins
+      run: |
+        wget -q -O - https://pkg.jenkins.io/debian/jenkins.io.key | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+        echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+        sudo apt-get update
+        sudo apt-get install jenkins -y
+      name: start jenkins service
+      run: |
+        sudo systemctl start jenkins
+        sudo systemctl status jenkins
+      name: enable jenkins service
+      run: |
+        sudo systemctl enable jenkins
+        sudo systemctl status jenkins
+      name: check jeninks working with if else
+      run: |
+        if systemctl status jenkins | grep "active (running)"; then
+          echo "Jenkins is running"
+        else
+          echo "Jenkins is not running"
+          exit 1
+        fi
+    
