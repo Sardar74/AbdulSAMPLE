@@ -26,7 +26,7 @@ jobs:
           cd main
       - name: copy index.html to nginx default directory
         run: |
-          sudo cp main/saas-website-template /var/www/html/
+          sudo cp -r main/saas-website-template /var/www/html/
       - name: add the content in default nginx configuration file
         run: |
           echo 'server {
