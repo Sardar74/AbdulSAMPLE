@@ -24,7 +24,7 @@ jobs:
           sudo -i -u postgres
       - name: create a a new password for postgres user
         run: |
-          psql -c "ALTER USER postgres PASSWORD 'YourNewPassword';"
+          psql -c "ALTER USER postgres PASSWORD 'postgres';"
       - name: configure postgresql to listen on all interfaces
         run: |
           sudo sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/g" /etc/postgresql/12/main/postgresql.conf
