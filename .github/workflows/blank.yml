@@ -18,7 +18,7 @@ jobs:
           javac -version
       - name: Sonar install latest version
         run: |
-          wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-10.2.0.53491.zip
+          wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-25.8.0.112029.zip
           sudo apt install unzip -y
           unzip sonarqube-10.2.0.53491.zip
           sudo mv sonarqube-10.2.0.53491 /opt/sonarqube
