@@ -18,18 +18,32 @@ jobs:
           javac -version
       - name: Sonar install latest version
         run: |
-          wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-25.8.0.112029.zip
-          sudo apt install unzip -y
+          wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-25.8.0.112029.zip          sudo apt install unzip -y
           unzip sonarqube-25.8.0.112029.zip
-          sudo mv sonarqube-25.8.0.112029/opt/sonarqube
-          sudo chown -R $USER:$USER /opt/sonarqube
-      - name: Start SonarQube server
+          sudo mv sonarqube-25.8.0.112029 /opt/sonarqube
+      - name: create a new user name sonarqube
         run: |
-          /opt/sonarqube/bin/linux-x86-64/sonar.sh start
-      - name: Verify SonarQube server is running
-        run: |  
-          if curl -I http://localhost:9000; then
-              echo "SonarQube server is running"
+          sudo adduser --system --no-create-home --group --disabled-login sonarqube
+      - name: create a new group name sonarGroup
+        run: |
+          sudo groupadd sonarGroup
+      - name: add the user sonarqube to sonarGroup
+        run: |
+          sudo usermod -a -G sonarGroup sonarqube
+      - name: change the ownership of the sonarqube directory
+        run: |
+          sudo chown -R sonarqube:sonarGroup /opt/sonarqube         
+          sudo chmod -R 750 /opt/sonarqube
+      - name: start sonarqube server
+        run: |
+          sudo -u sonarqube /opt/sonarqube/bin/linux-x86-64/sonar.sh start
+      - name: verify sonarqube server is running or not
+        run: |
+          curl -I localhost:9000 || echo "Sonarqube is not responding on localhost:9000"  
+      - name: check if the sonarqube server is running using if else condition
+        run: |
+          if curl -I localhost:9000; then
+              echo "Sonarqube server is running"
           else
-              echo "SonarQube server is not running"
+              echo "Sonarqube server is not running"
           fi
