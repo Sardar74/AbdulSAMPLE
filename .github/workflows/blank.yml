@@ -4,53 +4,51 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: install postgresql 
+      - name: Install PostgreSQL
         run: |
           sudo apt update
-          sudo apt install postgresql postgresql-contrib -y
-      - name: verify postgresql installation
+          sudo apt install -y postgresql postgresql-contrib
+
+      - name: Verify PostgreSQL installation
         run: |
           psql --version
-          systemctl status postgresql || echo "Postgresql installed, but service not running" 
           sudo systemctl start postgresql
           sudo systemctl enable postgresql
-          systemctl status postgresql
-      - name: switch to the postgres user
+          sudo systemctl status postgresql --no-pager
+
+      - name: Set postgres user password
         run: |
-          sudo -i -u postgres
-      - name: create a a new password for postgres user
+          sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'YourNewPassword';"
+
+      - name: Configure PostgreSQL to listen on all interfaces
         run: |
-          sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
-      - name: configure postgresql to listen on all interfaces
-        run: |
-          sudo sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/g" /etc/postgresql/12/main/postgresql.conf
-      - name: allow remote connections to the database
-        run: |
-          echo "host    all             all     
-      - name : restart postgresql service
-        run: |
+          PG_VERSION=$(psql -V | awk '{print $3}' | cut -d. -f1)
+          sudo sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/g" /etc/postgresql/$PG_VERSION/main/postgresql.conf
+          echo "host    all    all    0.0.0.0/0    md5" | sudo tee -a /etc/postgresql/$PG_VERSION/main/pg_hba.conf
           sudo systemctl restart postgresql
-      - name: verify postgresql is listening on all interfaces
-        run: |  
-          sudo netstat -plunt | grep postgres || echo "Postgresql is not listening on all interfaces" 
-      - name: check if postgresql is listening on all interfaces using if else condition
-        run: |  
-          if sudo netstat -plunt | grep postgres; then
-              echo "Postgresql is listening on all interfaces"
+
+      - name: Verify PostgreSQL listening
+        run: |
+          if sudo ss -plunt | grep postgres; then
+            echo "PostgreSQL is listening on all interfaces"
           else
-              echo "Postgresql is not listening on all interfaces"
+            echo "PostgreSQL is NOT listening on all interfaces"
           fi
-      - name: create a new database
+
+      - name: Create a new database
         run: |
-          psql -c "CREATE DATABASE mydatabase;" 
-      - name: enter data into the database
+          sudo -u postgres psql -c "CREATE DATABASE mydatabase;"
+
+      - name: Insert data into database
         run: |
-          psql -d mydatabase -c "CREATE TABLE users (id SERIAL PRIMARY KEY, name VARCHAR(100), email VARCHAR(100));"
-          psql -d mydatabase -c "INSERT INTO users (name, email) VALUES ('John Doe', '
-      - name: verify the data entered into the database
+          sudo -u postgres psql -d mydatabase -c "CREATE TABLE users (id SERIAL PRIMARY KEY, name VARCHAR(100), email VARCHAR(100));"
+          sudo -u postgres psql -d mydatabase -c "INSERT INTO users (name, email) VALUES ('John Doe', 'john@example.com');"
+
+      - name: Verify data
         run: |
-          psql -d mydatabase -c "SELECT * FROM users;"
+          sudo -u postgres psql -d mydatabase -c "SELECT * FROM users;"
