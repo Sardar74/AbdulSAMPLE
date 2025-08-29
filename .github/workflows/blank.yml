@@ -18,8 +18,7 @@ jobs:
           javac -version
       - name: Sonar install latest version
         run: |
-          wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-25.8.0.112029.zip         
-          sudo apt install unzip -y
+          wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-25.8.0.112029.zip          sudo apt install unzip -y
           unzip sonarqube-25.8.0.112029.zip
           sudo mv sonarqube-25.8.0.112029 /opt/sonarqube
       - name: create a new user name sonarqube
@@ -48,3 +47,7 @@ jobs:
           else
               echo "Sonarqube server is not running"
           fi
+      - name: check sonarcube status
+        run: |
+          sudo -u sonarqube /opt/sonarqube/bin/linux-x86-64/sonar.sh status
+      
