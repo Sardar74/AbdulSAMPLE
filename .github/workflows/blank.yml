@@ -8,44 +8,28 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: install nginx
+      - name: install java 17
         run: |
           sudo apt update
-          sudo apt install nginx -y
-      - name: verify nginx installation
+          sudo apt install openjdk-17-jdk -y
+      - name: verify java installation
         run: |
-          nginx -v
-          systemctl status nginx || echo "Nginx installed, but service not running" 
-          curl -I localhost || echo "Nginx is not responding on localhost"
-          sudo systemctl start nginx
-          sudo systemctl enable nginx
-          systemctl status nginx
-      - name: clone from github repository
+          java -version
+          javac -version
+      - name: Sonar install latest version
         run: |
-          git clone https://github.com/Sardar74/main.git
-          cd main
-      - name: copy index.html to nginx default directory
+          wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-10.2.0.53491.zip
+          sudo apt install unzip -y
+          unzip sonarqube-10.2.0.53491.zip
+          sudo mv sonarqube-10.2.0.53491 /opt/sonarqube
+          sudo chown -R $USER:$USER /opt/sonarqube
+      - name: Start SonarQube server
         run: |
-          sudo cp -r main/saas-website-template /var/www/html/
-      - name: add the content in default nginx configuration file
-        run: |
-          echo 'server {
-              listen 80 default_server;
-              listen [::]:80 default_server;
-              root /var/www/html/saas-website-template/;
-              index index.html index.htm index.nginx-debian.html;
-              server_name _;
-              location / {
-                  try_files $uri $uri/ =404;
-              }
-          }' | sudo tee /etc/nginx/sites-available/default
-      - name: restart nginx service
-        run: |
-          sudo systemctl restart nginx
-      - name: add if else condition to check nginx service status
-        run: |
-          if systemctl is-active --quiet nginx; then
-              echo "Nginx is running"
+          /opt/sonarqube/bin/linux-x86-64/sonar.sh start
+      - name: Verify SonarQube server is running
+        run: |  
+          if curl -I http://localhost:9000; then
+              echo "SonarQube server is running"
           else
-              echo "Nginx is not running"
+              echo "SonarQube server is not running"
           fi
