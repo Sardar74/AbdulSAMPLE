@@ -20,8 +20,8 @@ jobs:
         run: |
           wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-25.8.0.112029.zip
           sudo apt install unzip -y
-          unzip sonarqube-10.2.0.53491.zip
-          sudo mv sonarqube-10.2.0.53491 /opt/sonarqube
+          unzip sonarqube-25.8.0.112029.zip
+          sudo mv sonarqube-25.8.0.112029/opt/sonarqube
           sudo chown -R $USER:$USER /opt/sonarqube
       - name: Start SonarQube server
         run: |
