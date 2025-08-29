@@ -8,47 +8,49 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: install java 17
+      - name: install postgresql 
         run: |
           sudo apt update
-          sudo apt install openjdk-17-jdk -y
-      - name: verify java installation
+          sudo apt install postgresql postgresql-contrib -y
+      - name: verify postgresql installation
         run: |
-          java -version
-          javac -version
-      - name: Sonar install latest version
+          psql --version
+          systemctl status postgresql || echo "Postgresql installed, but service not running" 
+          sudo systemctl start postgresql
+          sudo systemctl enable postgresql
+          systemctl status postgresql
+      - name: switch to the postgres user
         run: |
-          wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-25.8.0.112029.zip         
-          sudo apt install unzip -y
-          unzip sonarqube-25.8.0.112029.zip
-          sudo mv sonarqube-25.8.0.112029 /opt/sonarqube
-      - name: create a new user name sonarqube
+          sudo -i -u postgres
+      - name: create a a new password for postgres user
         run: |
-          sudo adduser --system --no-create-home --group --disabled-login sonarqube
-      - name: create a new group name sonarGroup
+          psql -c "ALTER USER postgres PASSWORD 'YourNewPassword';"
+      - name: configure postgresql to listen on all interfaces
         run: |
-          sudo groupadd sonarGroup
-      - name: add the user sonarqube to sonarGroup
+          sudo sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/g" /etc/postgresql/12/main/postgresql.conf
+      - name: allow remote connections to the database
         run: |
-          sudo usermod -a -G sonarGroup sonarqube
-      - name: change the ownership of the sonarqube directory
+          echo "host    all             all     
+      - name : restart postgresql service
         run: |
-          sudo chown -R sonarqube:sonarGroup /opt/sonarqube         
-          sudo chmod -R 750 /opt/sonarqube
-      - name: start sonarqube server
-        run: |
-          sudo -u sonarqube /opt/sonarqube/bin/linux-x86-64/sonar.sh start
-      - name: verify sonarqube server is running or not
-        run: |
-          curl -I localhost:9000 || echo "Sonarqube is not responding on localhost:9000"  
-      - name: check if the sonarqube server is running using if else condition
-        run: |
-          if curl -I localhost:9000; then
-              echo "Sonarqube server is running"
+          sudo systemctl restart postgresql
+      - name: verify postgresql is listening on all interfaces
+        run: |  
+          sudo netstat -plunt | grep postgres || echo "Postgresql is not listening on all interfaces" 
+      - name: check if postgresql is listening on all interfaces using if else condition
+        run: |  
+          if sudo netstat -plunt | grep postgres; then
+              echo "Postgresql is listening on all interfaces"
           else
-              echo "Sonarqube server is not running"
+              echo "Postgresql is not listening on all interfaces"
           fi
-      - name: check sonarcube status
+      - name: create a new database
         run: |
-          sudo -u sonarqube /opt/sonarqube/bin/linux-x86-64/sonar.sh status
-      
+          psql -c "CREATE DATABASE mydatabase;" 
+      - name: enter data into the database
+        run: |
+          psql -d mydatabase -c "CREATE TABLE users (id SERIAL PRIMARY KEY, name VARCHAR(100), email VARCHAR(100));"
+          psql -d mydatabase -c "INSERT INTO users (name, email) VALUES ('John Doe', '
+      - name: verify the data entered into the database
+        run: |
+          psql -d mydatabase -c "SELECT * FROM users;"
